@@ -1,366 +1,364 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>03:00 • RAPTURE Raid Timer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        medieval: ['Cinzel', 'serif'],
-                    },
-                    colors: {
-                        rapture: {
-                            light: '#7b96eb',
-                            DEFAULT: '#2447a6',
-                            dark: '#162d6e',
-                            gold: '#b8860b'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            background: transparent;
-            cursor: pointer;
-        }
-        input[type="range"]::-webkit-slider-runnable-track {
-            height: 6px;
-            border-radius: 999px;
-            background: #d1d5db;
-        }
-        .dark input[type="range"]::-webkit-slider-runnable-track {
-            background: #374151;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            margin-top: -5px;
-            background-color: #2447a6;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            border: 2px solid #ffffff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            transition: transform 0.1s ease;
-        }
-        .dark input[type="range"]::-webkit-slider-thumb {
-            background-color: #7b96eb;
-            border-color: #111827;
-        }
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-        }
-        @keyframes waveAlertPulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(36, 71, 166, 0); }
-            50% { box-shadow: 0 0 28px 6px rgba(36, 71, 166, 0.45); }
-        }
-        .wave-triggered {
-            animation: waveAlertPulse 0.6s ease-in-out 2;
-        }
-        .travian-bg-art {
-            background-image: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.92) 0%, rgba(244, 239, 228, 0.88) 65%, rgba(230, 222, 203, 0.94) 100%);
-        }
-        .dark .travian-bg-art {
-            background-image: radial-gradient(circle at 50% 20%, rgba(17, 24, 39, 0.92) 0%, rgba(15, 23, 42, 0.95) 70%, rgba(9, 13, 22, 0.98) 100%);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>03:00 • RAPTURE Raid Timer</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], medieval: ['Cinzel','serif'] } } } }
+</script>
+<style type="text/tailwindcss">
+  .btn { @apply px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-200 transition active:scale-95 cursor-pointer; }
+  .preset { @apply px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer; }
+  .preset.active { @apply bg-[#2447a6]/15 text-[#2447a6] dark:text-[#7b96eb] border-[#2447a6]/40; }
+  .field { @apply w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 py-2 px-3 text-sm font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2447a6]; }
+  .lbl { @apply block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5; }
+</style>
+<style>
+  @keyframes pulse2 { 0%,100% { box-shadow: 0 0 0 0 rgba(36,71,166,0); } 50% { box-shadow: 0 0 28px 6px rgba(36,71,166,.5); } }
+  .wave-triggered { animation: pulse2 .6s ease-in-out 2; }
+  input[type=range] { accent-color: #2447a6; cursor: pointer; }
+</style>
 </head>
-<body class="min-h-screen flex flex-col justify-between bg-[#f4efe4] dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200 relative overflow-x-hidden select-none">
+<body class="min-h-screen flex flex-col justify-between bg-[#f4efe4] dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors select-none overflow-x-hidden">
 
-    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <svg class="w-full h-full object-cover opacity-[0.07] dark:opacity-[0.05]" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-            <path d="M0 620L240 340L460 540L720 260L980 510L1220 310L1440 560V900H0V620Z" fill="currentColor"/>
-            <path d="M180 680L480 390L760 630L1060 350L1440 690V900H180V680Z" fill="currentColor" opacity="0.6"/>
-            <path d="M1080 650L1160 510L1240 650H1080Z" fill="currentColor"/>
-            <path d="M1210 660L1300 490L1390 660H1210Z" fill="currentColor"/>
-            <rect x="1158" y="470" width="4" height="45" fill="currentColor"/>
-            <path d="M1162 472L1195 482L1162 492V472Z" fill="currentColor"/>
-            <g transform="translate(180, 180) scale(2.8)" opacity="0.55">
-                <path d="M60 35 C45 25, 25 25, 10 45 C22 45, 28 52, 20 65 C30 62, 36 68, 28 82 C38 78, 44 85, 38 98 C50 90, 56 75, 60 60 Z" fill="currentColor"/>
-                <path d="M140 35 C155 25, 175 25, 190 45 C178 45, 172 52, 180 65 C170 62, 164 68, 172 82 C162 78, 156 85, 162 98 C150 90, 144 75, 140 60 Z" fill="currentColor"/>
-                <path d="M100 25 L138 40 L134 95 C132 122, 100 138, 100 138 C100 138, 68 122, 66 95 L62 40 Z" fill="currentColor"/>
-            </g>
-        </svg>
-        <div class="absolute inset-0 travian-bg-art"></div>
+<header class="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-2 flex items-center justify-between">
+  <div class="flex items-center gap-3">
+    <svg viewBox="0 0 200 175" class="w-11 h-11 shrink-0" aria-hidden="true">
+      <path d="M65 36C50 12 28 16 18 36c10-2 16 2 4 18 11-4 16 2-2 22 13-6 18 0-4 26 15-8 20-2 2 26 15-10 20-4 8 22 16-14 22-28 28-44 4-14 8-32 11-51Z" fill="#2447a6"/>
+      <path d="M135 36c15-24 37-20 47 0-10-2-16 2-4 18 11-4 16 2 2 22-13-6-18 0 4 26-15-8-20-2-2 26-15-10-20-4-8 22-16-14-22-28-28-44-4-14-8-32-11-51Z" fill="#2447a6"/>
+      <path d="M100 22l40 16c-2 28-6 52-2 74 3 16-18 30-38 38-20-8-41-22-38-38 4-22 0-46-2-74Z" fill="#2447a6" stroke="#162d6e" stroke-width="3"/>
+      <path d="M100 27l28 11c-6 27-8 54-2 78-5 12-16 21-26 27-10-6-21-15-26-27 6-24 4-51-2-78Z" fill="#7b96eb"/>
+    </svg>
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="font-medieval font-extrabold text-lg sm:text-xl tracking-wider text-[#2447a6] dark:text-[#7b96eb]">RAPTURE</span>
+        <span class="text-slate-400">|</span>
+        <span class="font-medieval font-bold text-base sm:text-lg" data-i18n="title"></span>
+      </div>
+      <span class="text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-medium" data-i18n="subtitle"></span>
+    </div>
+  </div>
+  <div class="flex items-center gap-2">
+    <select id="langSelect" class="px-2 py-1.5 rounded-lg bg-white/90 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm font-medium cursor-pointer focus:outline-none" aria-label="Language">
+      <option value="es">🇪🇸 ES</option><option value="pt">🇵🇹 PT</option><option value="en">🇬🇧 EN</option>
+    </select>
+    <button id="darkBtn" type="button" class="px-3 py-1.5 rounded-lg bg-white/90 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm font-medium cursor-pointer">
+      <span id="darkIcon">🌙</span> <span id="darkLabel"></span>
+    </button>
+  </div>
+</header>
+
+<main class="flex-1 flex flex-col items-center justify-center px-4 py-6 w-full max-w-2xl mx-auto">
+  <div class="text-center mb-5">
+    <div class="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#2447a6]/10 text-[#2447a6] dark:text-[#7b96eb] text-xs font-semibold tracking-wide mb-1">
+      <span data-i18n="mainSlot"></span>
+      <span id="waveBadge" class="px-2 bg-[#2447a6] text-white rounded-full text-[10px]"></span>
+    </div>
+    <h1 class="font-medieval text-2xl sm:text-3xl font-bold" data-i18n="timer"></h1>
+    <div id="display" class="text-6xl sm:text-7xl font-bold tracking-tight mt-1 tabular-nums">03:00</div>
+  </div>
+
+  <div id="card" class="w-full max-w-md bg-white/95 dark:bg-slate-900/95 border border-slate-300 dark:border-slate-700 rounded-xl shadow-lg p-5 sm:p-6">
+    <label for="timeInput" class="lbl" data-i18n="setLabel"></label>
+    <div class="flex items-center gap-1.5">
+      <button type="button" class="btn" data-adj="-30">-30</button>
+      <button type="button" class="btn" data-adj="-15">-15</button>
+      <input id="timeInput" type="text" inputmode="numeric" value="03:00" maxlength="5" class="field text-center font-semibold tabular-nums min-w-0 flex-1">
+      <button type="button" class="btn" data-adj="15">+15</button>
+      <button type="button" class="btn" data-adj="30">+30</button>
+    </div>
+    <div class="flex flex-wrap items-center justify-center gap-1.5 mt-3 mb-4">
+      <span class="text-[11px] text-slate-400 mr-1" data-i18n="quick"></span>
+      <button type="button" class="preset" data-preset="90">01:30</button>
+      <button type="button" class="preset" data-preset="120">02:00</button>
+      <button type="button" class="preset" data-preset="180">03:00</button>
+      <button type="button" class="preset" data-preset="300">05:00</button>
+      <button type="button" class="preset" data-preset="600">10:00</button>
     </div>
 
-    <header class="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-2 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 drop-shadow-sm" title="RAPTURE">
-                <svg viewBox="0 0 200 175" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M65 36 C50 12, 28 16, 18 36 C28 34, 34 38, 22 54 C33 50, 38 56, 20 76 C33 70, 38 76, 16 102 C31 94, 36 100, 18 128 C33 118, 38 124, 26 150 C42 136, 48 122, 54 106 C58 92, 62 74, 65 55 Z" fill="#2447a6" stroke="#162d6e" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M58 46 C44 36, 34 42, 26 52 M56 64 C42 56, 32 64, 24 74 M54 84 C40 78, 30 88, 22 100 M50 104 C38 100, 30 112, 24 124" stroke="#7b96eb" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-                    <path d="M135 36 C150 12, 172 16, 182 36 C172 34, 166 38, 178 54 C167 50, 162 56, 180 76 C167 70, 162 76, 184 102 C169 94, 164 100, 182 128 C167 118, 162 124, 174 150 C158 136, 152 122, 146 106 C142 92, 138 74, 135 55 Z" fill="#2447a6" stroke="#162d6e" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M142 46 C156 36, 166 42, 174 52 M144 64 C158 56, 168 64, 176 74 M146 84 C160 78, 170 88, 178 100 M150 104 C162 100, 170 112, 176 124" stroke="#7b96eb" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-                    <path d="M100 22 L140 38 C138 66, 134 90, 138 112 C141 128, 120 142, 100 150 C80 142, 59 128, 62 112 C66 90, 62 66, 60 38 Z" fill="#2447a6" stroke="#162d6e" stroke-width="3" stroke-linejoin="round"/>
-                    <path d="M100 27 L128 38 C122 65, 120 92, 126 116 C121 128, 110 137, 100 143 C90 137, 79 128, 74 116 C80 92, 78 65, 72 38 Z" fill="#7b96eb"/>
-                    <g fill="#162d6e" transform="translate(83, 62) scale(0.34)">
-                        <path d="M52 12 C62 10, 70 18, 68 28 C72 32, 68 40, 60 42 C64 48, 62 56, 54 60 L58 76 L68 92 L62 98 L50 84 L44 108 L54 128 L46 132 L34 112 L24 130 L16 126 L28 102 L26 78 C16 82, 8 74, 10 62 C12 52, 22 48, 26 54 C24 42, 32 32, 40 30 C36 22, 42 14, 52 12 Z"/>
-                        <path d="M62 46 L82 36 L86 42 L66 54 Z"/>
-                        <path d="M60 60 L84 56 L86 63 L60 68 Z"/>
-                        <path d="M24 88 C8 82, 4 62, 14 48 C18 42, 24 44, 20 50 C14 60, 16 74, 26 80 Z"/>
-                    </g>
-                </svg>
-            </div>
-            <div class="flex flex-col">
-                <div class="flex items-center gap-2">
-                    <span class="font-medieval font-extrabold text-lg sm:text-xl tracking-wider text-[#2447a6] dark:text-[#7b96eb]">RAPTURE</span>
-                    <span class="text-slate-400 dark:text-slate-600 font-light">|</span>
-                    <span class="font-medieval font-bold text-base sm:text-lg text-slate-800 dark:text-slate-100" data-i18n="title">Raid Timer</span>
-                </div>
-                <span class="text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-medium" data-i18n="subtitle">Travian Alliance Wave Tool</span>
-            </div>
-        </div>
+    <label class="flex items-center justify-center gap-2 cursor-pointer mb-4">
+      <input id="repeat" type="checkbox" checked class="w-4 h-4 cursor-pointer accent-[#2447a6]">
+      <span class="text-sm font-medium" data-i18n="repeat"></span>
+    </label>
 
-        <div class="flex items-center gap-2 sm:gap-3">
-            <div class="relative">
-                <select id="langSelect" class="appearance-none px-2.5 py-1.5 pr-7 rounded-lg bg-white/90 dark:bg-slate-800/90 border border-slate-300/80 dark:border-slate-700 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer focus:outline-none">
-                    <option value="pt">🇵🇹 PT</option>
-                    <option value="en">🇬🇧 EN</option>
-                    <option value="es">🇪🇸 ES</option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-slate-500">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </div>
-            </div>
-            <button id="darkModeToggle" type="button" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/90 dark:bg-slate-800/90 border border-slate-300/80 dark:border-slate-700 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer">
-                <svg class="w-4 h-4 text-slate-600 dark:hidden" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                </svg>
-                <svg class="w-4 h-4 text-amber-400 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
-                </svg>
-                <span id="darkModeLabel" data-i18n="darkMode">Dark Mode</span>
-            </button>
-        </div>
-    </header>
+    <label for="soundSelect" class="lbl" data-i18n="sound"></label>
+    <select id="soundSelect" class="field mb-3 cursor-pointer">
+      <option value="warCry" data-i18n="s_warCry"></option>
+      <option value="battleHorn" data-i18n="s_battleHorn"></option>
+      <option value="warDrums" data-i18n="s_warDrums"></option>
+      <option value="swordClash" data-i18n="s_swordClash"></option>
+      <option value="battleCharge" data-i18n="s_battleCharge"></option>
+      <option value="epicHorn" data-i18n="s_epicHorn"></option>
+      <option value="beep" data-i18n="s_beep"></option>
+    </select>
 
-    <main class="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-6 w-full max-w-2xl mx-auto">
-        
-        <div class="text-center mb-5">
-            <div class="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#2447a6]/10 dark:bg-[#7b96eb]/15 text-[#2447a6] dark:text-[#7b96eb] text-xs font-semibold tracking-wide mb-1">
-                <span data-i18n="mainSlot">VAGA PRINCIPAL</span>
-                <span id="waveCounterBadge" class="px-1.5 py-0.2 bg-[#2447a6] text-white rounded-full text-[10px]">Vaga #1</span>
-            </div>
-            <h1 class="font-medieval text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-wide" data-i18n="timer">Timer</h1>
-            <div id="mainDisplay" class="text-6xl sm:text-7xl font-bold tracking-tight text-slate-900 dark:text-white mt-1 tabular-nums transition-colors">
-                03:00
-            </div>
-        </div>
+    <button id="testBtn" type="button" class="w-full py-2 mb-4 rounded-lg bg-[#2447a6] hover:bg-[#162d6e] text-white font-semibold text-sm shadow-sm transition active:scale-[.99] cursor-pointer">🔊 <span data-i18n="test"></span></button>
 
-        <div id="mainTimerCard" class="w-full max-w-md bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border border-slate-300/90 dark:border-slate-700/90 rounded-xl shadow-lg p-5 sm:p-6 transition-all">
-            
-            <div class="mb-4">
-                <label for="timeInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5" data-i18n="setLabel">
-                    Set (mm:ss)
-                </label>
-                <div class="flex items-center gap-1.5 sm:gap-2">
-                    <button type="button" onclick="adjustMainTime(-30)" class="px-2.5 sm:px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 transition active:scale-95 cursor-pointer">-30</button>
-                    <button type="button" onclick="adjustMainTime(-15)" class="px-2.5 sm:px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 transition active:scale-95 cursor-pointer">-15</button>
-                    <input id="timeInput" type="text" value="03:00" maxlength="5" aria-label="Time"
-                        class="flex-1 min-w-0 text-center py-2 px-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm sm:text-base font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2447a6] dark:focus:ring-[#7b96eb] tabular-nums" />
-                    <button type="button" onclick="adjustMainTime(15)" class="px-2.5 sm:px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 transition active:scale-95 cursor-pointer">+15</button>
-                    <button type="button" onclick="adjustMainTime(30)" class="px-2.5 sm:px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 transition active:scale-95 cursor-pointer">+30</button>
-                </div>
-
-                <div class="flex flex-wrap items-center justify-center gap-1.5 mt-3">
-                    <span class="text-[11px] text-slate-400 dark:text-slate-500 mr-1" data-i18n="quick">Rápido:</span>
-                    <button type="button" onclick="setPresetTime(90)" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-[#2447a6]/15 dark:hover:bg-[#7b96eb]/20 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer">01:30</button>
-                    <button type="button" onclick="setPresetTime(120)" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-[#2447a6]/15 dark:hover:bg-[#7b96eb]/20 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer">02:00</button>
-                    <button type="button" onclick="setPresetTime(180)" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-[#2447a6]/15 dark:bg-[#7b96eb]/20 text-[#2447a6] dark:text-[#7b96eb] border border-[#2447a6]/30 dark:border-[#7b96eb]/30 transition cursor-pointer">03:00</button>
-                    <button type="button" onclick="setPresetTime(300)" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-[#2447a6]/15 dark:hover:bg-[#7b96eb]/20 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer">05:00</button>
-                    <button type="button" onclick="setPresetTime(600)" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-[#2447a6]/15 dark:hover:bg-[#7b96eb]/20 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer">10:00</button>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-center my-3.5">
-                <label class="inline-flex items-center gap-2 cursor-pointer select-none">
-                    <input id="repeatCheckbox" type="checkbox" checked class="w-4 h-4 rounded border-slate-300 text-[#2447a6] focus:ring-[#2447a6] accent-[#2447a6] cursor-pointer">
-                    <span class="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200" data-i18n="repeat">Repeat (Repetir vaga automaticamente)</span>
-                </label>
-            </div>
-
-            <div class="mb-3">
-                <label for="soundSelect" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5" data-i18n="sound">Sound</label>
-                <div class="relative">
-                    <select id="soundSelect" class="w-full appearance-none rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 py-2 pl-3 pr-9 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2447a6] dark:focus:ring-[#7b96eb] cursor-pointer">
-                        <option value="warCry" data-i18n="soundWarCry">⚔️ War Cry (Grito de Guerra)</option>
-                        <option value="battleHorn" data-i18n="soundBattleHorn">🎺 Battle Horn (Corneta de Batalha)</option>
-                        <option value="warDrums" data-i18n="soundWarDrums">🥁 War Drums (Tambores de Guerra)</option>
-                        <option value="swordClash" data-i18n="soundSwordClash">🗡️ Sword Clash (Choque de Espadas)</option>
-                        <option value="battleCharge" data-i18n="soundBattleCharge">⚡ Battle Charge (Carga de Batalha)</option>
-                        <option value="epicHorn" data-i18n="soundEpicHorn">🏰 Epic Horn (Corneta Épica)</option>
-                        <option value="beep" data-i18n="soundBeep">🔔 Beep (Clássico)</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <button id="testSoundBtn" type="button" class="w-full py-2 px-4 mb-4 rounded-lg bg-[#2447a6] hover:bg-[#162d6e] dark:bg-[#2447a6] dark:hover:bg-[#3158c4] text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.99] cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                </svg>
-                <span data-i18n="test">Test</span>
-            </button>
-
-            <div class="flex items-center gap-3">
-                <span class="text-xs font-semibold text-slate-600 dark:text-slate-300" data-i18n="volume">Volume</span>
-                <input id="volumeSlider" type="range" min="0" max="100" value="100" class="flex-1" aria-label="Volume">
-                <span id="volumeValue" class="text-xs font-semibold text-slate-600 dark:text-slate-300 w-9 text-right tabular-nums">100%</span>
-            </div>
-        </div>
-
-        <div class="flex items-center justify-center gap-3 mt-5">
-            <button id="startPauseBtn" type="button" class="min-w-[105px] px-6 py-2.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-800 dark:text-white font-semibold text-sm shadow-sm transition active:scale-95 cursor-pointer">
-                Start
-            </button>
-            <button id="resetBtn" type="button" class="min-w-[105px] px-6 py-2.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-800 dark:text-white font-semibold text-sm shadow-sm transition active:scale-95 cursor-pointer">
-                Reset
-            </button>
-        </div>
-
-    </main>
-
-    <div id="waveToast" class="fixed bottom-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-3 transition-all duration-300">
-        <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#2447a6] text-white shadow-xl border border-[#7b96eb]/40 text-xs sm:text-sm font-semibold">
-            <span class="w-2 h-2 rounded-full bg-amber-300 animate-ping"></span>
-            <span id="waveToastText">Hora de enviar a vaga de raids!</span>
-        </div>
+    <div class="flex items-center gap-3">
+      <span class="text-xs font-semibold text-slate-600 dark:text-slate-300" data-i18n="volume"></span>
+      <input id="volume" type="range" min="0" max="100" value="100" class="flex-1" aria-label="Volume">
+      <span id="volumeVal" class="text-xs font-semibold w-9 text-right tabular-nums">100%</span>
     </div>
+  </div>
 
-    <footer class="relative z-10 w-full text-center py-4 px-4 text-xs text-slate-500 dark:text-slate-400">
-        <div class="flex items-center justify-center gap-2 font-medium">
-            <span class="font-medieval font-bold text-[#2447a6] dark:text-[#7b96eb]">RAPTURE</span>
-            <span>Alliance</span>
-            <span>•</span>
-            <span data-i18n="footerTool">Travian Raid Wave Timer</span>
-        </div>
-        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5" data-i18n="footerHint">
-            Mantém este separador aberto para ouvir o alerta sonoro entre vagas.
-        </p>
-    </footer>
+  <div class="flex gap-3 mt-5">
+    <button id="startBtn" type="button" class="btn min-w-[110px] !py-2.5 !bg-white dark:!bg-slate-800"></button>
+    <button id="resetBtn" type="button" class="btn min-w-[110px] !py-2.5 !bg-white dark:!bg-slate-800"></button>
+  </div>
+</main>
 
-    <script>
-        // ==========================================
-        // 0. I18N TRANSLATIONS
-        // ==========================================
-        const translations = {
-            pt: {
-                title: "Raid Timer",
-                subtitle: "Travian Alliance Wave Tool",
-                darkMode: "Dark Mode",
-                lightMode: "Light Mode",
-                mainSlot: "VAGA PRINCIPAL",
-                timer: "Timer",
-                setLabel: "Definir (mm:ss)",
-                quick: "Rápido:",
-                repeat: "Repeat (Repetir vaga automaticamente)",
-                sound: "Som",
-                soundWarCry: "⚔️ War Cry (Grito de Guerra)",
-                soundBattleHorn: "🎺 Battle Horn (Corneta de Batalha)",
-                soundWarDrums: "🥁 War Drums (Tambores de Guerra)",
-                soundSwordClash: "🗡️ Sword Clash (Choque de Espadas)",
-                soundBattleCharge: "⚡ Battle Charge (Carga de Batalha)",
-                soundEpicHorn: "🏰 Epic Horn (Corneta Épica)",
-                soundBeep: "🔔 Beep (Clássico)",
-                test: "Testar",
-                volume: "Volume",
-                start: "Iniciar",
-                pause: "Pausar",
-                reset: "Reiniciar",
-                footerTool: "Travian Raid Wave Timer",
-                footerHint: "Mantém este separador aberto para ouvir o alerta sonoro entre vagas.",
-                toastMessage: "⚔️ RAPTURE: Enviar Vaga #{n} agora!",
-                waveLabel: "Vaga #{n}",
-                documentTitle: "RAPTURE Raid Timer"
-            },
-            en: {
-                title: "Raid Timer",
-                subtitle: "Travian Alliance Wave Tool",
-                darkMode: "Dark Mode",
-                lightMode: "Light Mode",
-                mainSlot: "MAIN SLOT",
-                timer: "Timer",
-                setLabel: "Set (mm:ss)",
-                quick: "Quick:",
-                repeat: "Repeat (Auto-repeat wave)",
-                sound: "Sound",
-                soundWarCry: "⚔️ War Cry",
-                soundBattleHorn: "🎺 Battle Horn",
-                soundWarDrums: "🥁 War Drums",
-                soundSwordClash: "🗡️ Sword Clash",
-                soundBattleCharge: "⚡ Battle Charge",
-                soundEpicHorn: "🏰 Epic Horn",
-                soundBeep: "🔔 Beep (Classic)",
-                test: "Test",
-                volume: "Volume",
-                start: "Start",
-                pause: "Pause",
-                reset: "Reset",
-                footerTool: "Travian Raid Wave Timer",
-                footerHint: "Keep this tab open to hear the sound alert between waves.",
-                toastMessage: "⚔️ RAPTURE: Send Wave #{n} now!",
-                waveLabel: "Wave #{n}",
-                documentTitle: "RAPTURE Raid Timer"
-            },
-            es: {
-                title: "Raid Timer",
-                subtitle: "Herramienta de Oleadas de Alianza Travian",
-                darkMode: "Modo Oscuro",
-                lightMode: "Modo Claro",
-                mainSlot: "RANURA PRINCIPAL",
-                timer: "Temporizador",
-                setLabel: "Establecer (mm:ss)",
-                quick: "Rápido:",
-                repeat: "Repeat (Repetir oleada automáticamente)",
-                sound: "Sonido",
-                soundWarCry: "⚔️ War Cry (Grito de Guerra)",
-                soundBattleHorn: "🎺 Battle Horn (Cuerno de Batalla)",
-                soundWarDrums: "🥁 War Drums (Tambores de Guerra)",
-                soundSwordClash: "🗡️ Sword Clash (Choque de Espadas)",
-                soundBattleCharge: "⚡ Battle Charge (Carga de Batalla)",
-                soundEpicHorn: "🏰 Epic Horn (Cuerno Épico)",
-                soundBeep: "🔔 Beep (Clásico)",
-                test: "Probar",
-                volume: "Volumen",
-                start: "Iniciar",
-                pause: "Pausar",
-                reset: "Reiniciar",
-                footerTool: "Temporizador de Oleadas Travian",
-                footerHint: "Mantén esta pestaña abierta para escuchar la alerta sonora entre oleadas.",
-                toastMessage: "⚔️ RAPTURE: ¡Enviar Oleada #{n} ahora!",
-                waveLabel: "Oleada #{n}",
-                documentTitle: "RAPTURE Raid Timer"
-            }
-        };
+<div id="toast" class="fixed bottom-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-3 transition-all duration-300">
+  <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#2447a6] text-white shadow-xl text-sm font-semibold">
+    <span class="w-2 h-2 rounded-full bg-amber-300 animate-ping"></span><span id="toastText"></span>
+  </div>
+</div>
 
-        let currentLang = localStorage.getItem('rapture_lang') || 'pt';
+<footer class="text-center py-4 px-4 text-xs text-slate-500 dark:text-slate-400">
+  <div class="font-medium"><span class="font-medieval font-bold text-[#2447a6] dark:text-[#7b96eb]">RAPTURE</span> Alliance • <span data-i18n="footerTool"></span></div>
+  <p class="text-[11px] mt-0.5" data-i18n="footerHint"></p>
+</footer>
 
-        function t(key) {
-            return translations[currentLang][key] || key;
-        }
+<script>
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('rapture_' + k); return v === null ? d : v; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('rapture_' + k, v); } catch {} }
+};
 
-        function applyTranslations() {
-            // Textos simples
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (translations[currentLang][key]
+// ---------- i18n ----------
+const T = {
+  pt: { title:"Raid Timer", subtitle:"Travian Alliance Wave Tool", darkMode:"Modo escuro", lightMode:"Modo claro",
+    mainSlot:"VAGA PRINCIPAL", timer:"Timer", setLabel:"Definir (mm:ss)", quick:"Rápido:", repeat:"Repetir vaga automaticamente",
+    sound:"Som", s_warCry:"⚔️ Grito de Guerra", s_battleHorn:"🎺 Corneta de Batalha", s_warDrums:"🥁 Tambores de Guerra",
+    s_swordClash:"🗡️ Choque de Espadas", s_battleCharge:"⚡ Carga de Batalha", s_epicHorn:"🏰 Corneta Épica", s_beep:"🔔 Beep (Clássico)",
+    test:"Testar", volume:"Volume", start:"Iniciar", pause:"Pausar", reset:"Reiniciar",
+    footerTool:"Travian Raid Wave Timer", footerHint:"Mantém este separador aberto para ouvir o alerta sonoro entre vagas.",
+    toast:"⚔️ RAPTURE: Enviar Vaga #{n} agora!", wave:"Vaga #{n}" },
+  en: { title:"Raid Timer", subtitle:"Travian Alliance Wave Tool", darkMode:"Dark mode", lightMode:"Light mode",
+    mainSlot:"MAIN SLOT", timer:"Timer", setLabel:"Set (mm:ss)", quick:"Quick:", repeat:"Auto-repeat wave",
+    sound:"Sound", s_warCry:"⚔️ War Cry", s_battleHorn:"🎺 Battle Horn", s_warDrums:"🥁 War Drums",
+    s_swordClash:"🗡️ Sword Clash", s_battleCharge:"⚡ Battle Charge", s_epicHorn:"🏰 Epic Horn", s_beep:"🔔 Beep (Classic)",
+    test:"Test", volume:"Volume", start:"Start", pause:"Pause", reset:"Reset",
+    footerTool:"Travian Raid Wave Timer", footerHint:"Keep this tab open to hear the sound alert between waves.",
+    toast:"⚔️ RAPTURE: Send Wave #{n} now!", wave:"Wave #{n}" },
+  es: { title:"Raid Timer", subtitle:"Herramienta de Oleadas de Alianza Travian", darkMode:"Modo oscuro", lightMode:"Modo claro",
+    mainSlot:"RANURA PRINCIPAL", timer:"Temporizador", setLabel:"Establecer (mm:ss)", quick:"Rápido:", repeat:"Repetir oleada automáticamente",
+    sound:"Sonido", s_warCry:"⚔️ Grito de Guerra", s_battleHorn:"🎺 Cuerno de Batalla", s_warDrums:"🥁 Tambores de Guerra",
+    s_swordClash:"🗡️ Choque de Espadas", s_battleCharge:"⚡ Carga de Batalla", s_epicHorn:"🏰 Cuerno Épico", s_beep:"🔔 Beep (Clásico)",
+    test:"Probar", volume:"Volumen", start:"Iniciar", pause:"Pausar", reset:"Reiniciar",
+    footerTool:"Temporizador de Oleadas Travian", footerHint:"Mantén esta pestaña abierta para escuchar la alerta sonora entre oleadas.",
+    toast:"⚔️ RAPTURE: ¡Enviar Oleada #{n} ahora!", wave:"Oleada #{n}" }
+};
+let lang = store.get('lang', 'es');
+if (!T[lang]) lang = 'es';
+const t = (k, n) => (T[lang][k] ?? k).replace('{n}', n);
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  $('langSelect').value = lang;
+  updateDarkLabel();
+  render();
+}
+
+// ---------- dark mode ----------
+function updateDarkLabel() {
+  const dark = document.documentElement.classList.contains('dark');
+  $('darkLabel').textContent = dark ? t('lightMode') : t('darkMode');
+  $('darkIcon').textContent = dark ? '☀️' : '🌙';
+}
+(function () {
+  const saved = store.get('dark', null);
+  const dark = saved !== null ? saved === '1' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.classList.toggle('dark', dark);
+})();
+$('darkBtn').onclick = () => {
+  const dark = document.documentElement.classList.toggle('dark');
+  store.set('dark', dark ? '1' : '0');
+  updateDarkLabel();
+};
+
+// ---------- audio ----------
+let ctx, master, noiseBuf;
+let volume = Number(store.get('volume', 100));
+function audio() {
+  if (!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain();
+    master.connect(ctx.destination);
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  if (ctx.state === 'suspended') ctx.resume();
+  master.gain.value = volume / 100;
+  return ctx;
+}
+function tone(f, t0, dur, type = 'sine', g = 0.35, f2 = null, dest = null) {
+  const o = ctx.createOscillator(), e = ctx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(f, t0);
+  if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+  e.gain.setValueAtTime(0.0001, t0);
+  e.gain.exponentialRampToValueAtTime(g, t0 + 0.03);
+  e.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(e); e.connect(dest || master);
+  o.start(t0); o.stop(t0 + dur + 0.05);
+}
+function noise(t0, dur, g, freq, type = 'bandpass', q = 1) {
+  const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), e = ctx.createGain();
+  s.buffer = noiseBuf; s.loop = true;
+  f.type = type; f.frequency.value = freq; f.Q.value = q;
+  e.gain.setValueAtTime(g, t0);
+  e.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  s.connect(f); f.connect(e); e.connect(master);
+  s.start(t0); s.stop(t0 + dur + 0.05);
+}
+const drum = (t0, g = 0.9) => { tone(130, t0, 0.35, 'sine', g, 42); noise(t0, 0.12, g * 0.4, 200, 'lowpass'); };
+const SOUNDS = {
+  beep(t) { [0, .3, .6].forEach(d => tone(880, t + d, .2, 'sine', .4)); },
+  battleHorn(t) {
+    [0, 1.1].forEach((d, i) => {
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1200; lp.connect(master);
+      tone(i ? 246.9 : 196, t + d, 1, 'sawtooth', .3, null, lp);
+      tone(i ? 370 : 294, t + d, 1, 'sawtooth', .2, null, lp);
+    });
+  },
+  epicHorn(t) {
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1500; lp.connect(master);
+    [[130.8, 196, 261.6], [164.8, 246.9, 329.6], [196, 293.7, 392]].forEach((ch, i) =>
+      ch.forEach(f => tone(f, t + i * 0.9, 1.4, 'sawtooth', .22, null, lp)));
+  },
+  warDrums(t) { [0, .35, .7, 1.05, 1.4, 1.6, 1.8, 2.1].forEach(d => drum(t + d)); },
+  swordClash(t) {
+    [0, .45, .9].forEach(d => {
+      noise(t + d, .35, .6, 5000, 'highpass');
+      [2093, 3136, 4186, 5274].forEach(f => tone(f, t + d, .5, 'triangle', .12));
+    });
+  },
+  battleCharge(t) {
+    [392, 523, 659, 784, 392, 523, 659, 784, 1046].forEach((f, i) => tone(f, t + i * .13, .18, 'square', .18));
+    [0, .26, .52, .78].forEach(d => drum(t + d, .7));
+  },
+  warCry(t) {
+    [0, 1.3].forEach((d, i) => {
+      const o = ctx.createOscillator(), e = ctx.createGain(), f1 = ctx.createBiquadFilter(), f2 = ctx.createBiquadFilter();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(110, t + d);
+      o.frequency.linearRampToValueAtTime(i ? 210 : 180, t + d + .5);
+      o.frequency.linearRampToValueAtTime(130, t + d + 1.1);
+      f1.type = f2.type = 'bandpass';
+      f1.frequency.setValueAtTime(500, t + d); f1.frequency.linearRampToValueAtTime(900, t + d + .5);
+      f2.frequency.setValueAtTime(1100, t + d); f2.frequency.linearRampToValueAtTime(1800, t + d + .5);
+      f1.Q.value = f2.Q.value = 4;
+      e.gain.setValueAtTime(0.0001, t + d);
+      e.gain.exponentialRampToValueAtTime(.9, t + d + .12);
+      e.gain.exponentialRampToValueAtTime(0.0001, t + d + 1.15);
+      o.connect(f1); o.connect(f2); f1.connect(e); f2.connect(e); e.connect(master);
+      o.start(t + d); o.stop(t + d + 1.2);
+    });
+    noise(t, 2.2, .08, 1500, 'bandpass');
+  }
+};
+function playSound() { const c = audio(); (SOUNDS[$('soundSelect').value] || SOUNDS.beep)(c.currentTime + 0.02); }
+
+$('soundSelect').value = store.get('sound', 'warCry');
+$('soundSelect').onchange = () => { store.set('sound', $('soundSelect').value); playSound(); };
+$('testBtn').onclick = playSound;
+$('volume').value = volume;
+$('volumeVal').textContent = volume + '%';
+$('volume').oninput = e => {
+  volume = Number(e.target.value);
+  $('volumeVal').textContent = volume + '%';
+  store.set('volume', volume);
+  if (master) master.gain.value = volume / 100;
+};
+
+// ---------- timer ----------
+const MIN = 5, MAX = 5999;
+let duration = Math.min(MAX, Math.max(MIN, Number(store.get('duration', 180))));
+let remaining = duration, running = false, endAt = 0, wave = 1, tick = null;
+const fmt = s => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+
+function parseTime(v) {
+  v = v.trim();
+  let s;
+  if (v.includes(':')) { const [m, sec] = v.split(':'); s = (parseInt(m) || 0) * 60 + (parseInt(sec) || 0); }
+  else s = parseInt(v);
+  return Number.isFinite(s) ? Math.min(MAX, Math.max(MIN, s)) : duration;
+}
+function render() {
+  const secs = Math.max(0, Math.ceil(remaining));
+  $('display').textContent = fmt(secs);
+  $('startBtn').textContent = running ? t('pause') : t('start');
+  $('resetBtn').textContent = t('reset');
+  $('waveBadge').textContent = t('wave', wave);
+  document.title = fmt(secs) + ' • RAPTURE Raid Timer';
+  if (document.activeElement !== $('timeInput')) $('timeInput').value = fmt(duration);
+  document.querySelectorAll('.preset').forEach(b => b.classList.toggle('active', Number(b.dataset.preset) === duration));
+}
+function setDuration(s) {
+  duration = Math.min(MAX, Math.max(MIN, s));
+  store.set('duration', duration);
+  remaining = duration;
+  if (running) endAt = Date.now() + duration * 1000;
+  $('timeInput').value = fmt(duration);
+  render();
+}
+function onFinish() {
+  playSound();
+  showToast(t('toast', wave));
+  const c = $('card'); c.classList.remove('wave-triggered'); void c.offsetWidth; c.classList.add('wave-triggered');
+  wave++;
+  if ($('repeat').checked) {
+    endAt += duration * 1000;
+    if (endAt <= Date.now()) endAt = Date.now() + duration * 1000;
+  } else {
+    stop(); remaining = duration;
+  }
+}
+function loop() {
+  remaining = (endAt - Date.now()) / 1000;
+  if (remaining <= 0) onFinish();
+  remaining = running ? Math.max(0, (endAt - Date.now()) / 1000) : remaining;
+  render();
+}
+function start() {
+  audio(); // desbloqueia o áudio com o clique do utilizador
+  if (remaining <= 0) remaining = duration;
+  endAt = Date.now() + remaining * 1000;
+  running = true;
+  tick = setInterval(loop, 250);
+  render();
+}
+function stop() { running = false; clearInterval(tick); render(); }
+$('startBtn').onclick = () => running ? (remaining = Math.max(0, (endAt - Date.now()) / 1000), stop()) : start();
+$('resetBtn').onclick = () => { stop(); remaining = duration; wave = 1; render(); };
+
+document.querySelectorAll('[data-adj]').forEach(b => b.onclick = () => setDuration(duration + Number(b.dataset.adj)));
+document.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => setDuration(Number(b.dataset.preset)));
+$('timeInput').onchange = e => setDuration(parseTime(e.target.value));
+$('timeInput').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
+$('timeInput').onblur = e => setDuration(parseTime(e.target.value));
+$('repeat').checked = store.get('repeat', '1') === '1';
+$('repeat').onchange = e => store.set('repeat', e.target.checked ? '1' : '0');
+
+// ---------- toast ----------
+let toastTimer;
+function showToast(msg) {
+  $('toastText').textContent = msg;
+  const el = $('toast');
+  el.classList.remove('opacity-0', 'translate-y-3');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.add('opacity-0', 'translate-y-3'), 4000);
+}
+
+// ---------- idioma ----------
+$('langSelect').onchange = e => { lang = e.target.value; store.set('lang', lang); applyLang(); };
+applyLang();
+</script>
+</body>
+</html>
