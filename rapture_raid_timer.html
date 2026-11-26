@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>03:00 • RAPTURE Raid Timer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cinzel (estilo medieval/Travian para títulos) & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        medieval: ['Cinzel', 'serif'],
+                    },
+                    colors: {
+                        rapture: {
+                            light: '#7b96eb',
+                            DEFAULT: '#2447a6',
+                            dark: '#162d6e',
+                            gold: '#b8860b'
+                        },
+                        travian: {
+                            green: '#5a7828',
+                            greenHover: '#49631f',
+                            parchment: '#f4efe4',
+                            parchmentDark: '#e6decb'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom range slider styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 6px;
+            border-radius: 999px;
+            background: #d1d5db;
+        }
+        .dark input[type="range"]::-webkit-slider-runnable-track {
+            background: #374151;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -5px;
+            background-color: #2447a6;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            border: 2px solid #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            transition: transform 0.1s ease;
+        }
+        .dark input[type="range"]::-webkit-slider-thumb {
+            background-color: #7b96eb;
+            border-color: #111827;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        /* Subtle flash animation when wave finishes */
+        @keyframes waveAlertPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(36, 71, 166, 0); }
+            50% { box-shadow: 0 0 28px 6px rgba(36, 71, 166, 0.45); }
+        }
+        .wave-triggered {
+            animation: waveAlertPulse 0.6s ease-in-out 2;
+        }
+
+        /* Custom subtle background landscape SVG pattern */
+        .travian-bg-art {
+            background-image: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.92) 0%, rgba(244, 239, 228, 0.88) 65%, rgba(230, 222, 203, 0.94) 100%);
+        }
+        .dark .travian-bg-art {
+            background-image: radial-gradient(circle at 50% 20%, rgba(17, 24, 39, 0.92) 0%, rgba(15, 23, 42, 0.95) 70%, rgba(9, 13, 22, 0.98) 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-[#f4efe4] dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200 relative overflow-x-hidden select-none">
+
+    <!-- Subtle Decorative Background Illustration (Mountains, Banners & Crest Watermark) -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <!-- SVG Landscape & Warrior Silhouette inspired by Travian -->
+        <svg class="w-full h-full object-cover opacity-[0.07] dark:opacity-[0.05]" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <!-- Distant Mountains -->
+            <path d="M0 620L240 340L460 540L720 260L980 510L1220 310L1440 560V900H0V620Z" fill="currentColor"/>
+            <path d="M180 680L480 390L760 630L1060 350L1440 690V900H180V680Z" fill="currentColor" opacity="0.6"/>
+            <!-- Village Tents & Palisade Silhouettes -->
+            <path d="M1080 650L1160 510L1240 650H1080Z" fill="currentColor"/>
+            <path d="M1210 660L1300 490L1390 660H1210Z" fill="currentColor"/>
+            <rect x="1158" y="470" width="4" height="45" fill="currentColor"/>
+            <path d="M1162 472L1195 482L1162 492V472Z" fill="currentColor"/>
+            <!-- Subtle Giant RAPTURE Crest Watermark on Left -->
+            <g transform="translate(180, 180) scale(2.8)" opacity="0.55">
+                <path d="M60 35 C45 25, 25 25, 10 45 C22 45, 28 52, 20 65 C30 62, 36 68, 28 82 C38 78, 44 85, 38 98 C50 90, 56 75, 60 60 Z" fill="currentColor"/>
+                <path d="M140 35 C155 25, 175 25, 190 45 C178 45, 172 52, 180 65 C170 62, 164 68, 172 82 C162 78, 156 85, 162 98 C150 90, 144 75, 140 60 Z" fill="currentColor"/>
+                <path d="M100 25 L138 40 L134 95 C132 122, 100 138, 100 138 C100 138, 68 122, 66 95 L62 40 Z" fill="currentColor"/>
+            </g>
+        </svg>
+        <div class="absolute inset-0 travian-bg-art"></div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-2 flex items-center justify-between">
+        <!-- Alliance Brand & Custom SVG Crest -->
+        <div class="flex items-center gap-3">
+            <!-- Custom SVG RAPTURE Crest (Blue Winged Shield + Rampant Lion) -->
+            <div class="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 drop-shadow-sm" title="Aliança RAPTURE">
+                <svg viewBox="0 0 200 175" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Left Wing -->
+                    <path d="M65 36 C50 12, 28 16, 18 36 C28 34, 34 38, 22 54 C33 50, 38 56, 20 76 C33 70, 38 76, 16 102 C31 94, 36 100, 18 128 C33 118, 38 124, 26 150 C42 136, 48 122, 54 106 C58 92, 62 74, 65 55 Z" fill="#2447a6" stroke="#162d6e" stroke-width="2" stroke-linejoin="round"/>
+                    <!-- Left Wing Inner Feather Detail -->
+                    <path d="M58 46 C44 36, 34 42, 26 52 M56 64 C42 56, 32 64, 24 74 M54 84 C40 78, 30 88, 22 100 M50 104 C38 100, 30 112, 24 124" stroke="#7b96eb" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+
+                    <!-- Right Wing -->
+                    <path d="M135 36 C150 12, 172 16, 182 36 C172 34, 166 38, 178 54 C167 50, 162 56, 180 76 C167 70, 162 76, 184 102 C169 94, 164 100, 182 128 C167 118, 162 124, 174 150 C158 136, 152 122, 146 106 C142 92, 138 74, 135 55 Z" fill="#2447a6" stroke="#162d6e" stroke-width="2" stroke-linejoin="round"/>
+                    <!-- Right Wing Inner Feather Detail -->
+                    <path d="M142 46 C156 36, 166 42, 174 52 M144 64 C158 56, 168 64, 176 74 M146 84 C160 78, 170 88, 178 100 M150 104 C162 100, 170 112, 176 124" stroke="#7b96eb" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+
+                    <!-- Shield Outer Dark Blue Frame -->
+                    <path d="M100 22 L140 38 C138 66, 134 90, 138 112 C141 128, 120 142, 100 150 C80 142, 59 128, 62 112 C66 90, 62 66, 60 38 Z" fill="#2447a6" stroke="#162d6e" stroke-width="3" stroke-linejoin="round"/>
+                    
+                    <!-- Shield Inner Light Blue Field (Curved Sides matching crest) -->
+                    <path d="M100 27 L128 38 C122 65, 120 92, 126 116 C121 128, 110 137, 100 143 C90 137, 79 128, 74 116 C80 92, 78 65, 72 38 Z" fill="#7b96eb"/>
+
+                    <!-- Dark Blue Rampant Lion Silhouette in Center -->
+                    <g fill="#162d6e" transform="translate(83, 62) scale(0.34)">
+                        <!-- Lion Head & Mane -->
+                        <path d="M52 12 C62 10, 70 18, 68 28 C72 32, 68 40, 60 42 C64 48, 62 56, 54 60 L58 76 L68 92 L62 98 L50 84 L44 108 L54 128 L46 132 L34 112 L24 130 L16 126 L28 102 L26 78 C16 82, 8 74, 10 62 C12 52, 22 48, 26 54 C24 42, 32 32, 40 30 C36 22, 42 14, 52 12 Z"/>
+                        <!-- Raised Front Paws -->
+                        <path d="M62 46 L82 36 L86 42 L66 54 Z"/>
+                        <path d="M60 60 L84 56 L86 63 L60 68 Z"/>
+                        <!-- Lion Tail -->
+                        <path d="M24 88 C8 82, 4 62, 14 48 C18 42, 24 44, 20 50 C14 60, 16 74, 26 80 Z"/>
+                    </g>
+                </svg>
+            </div>
+
+            <div class="flex flex-col">
+                <div class="flex items-center gap-2">
+                    <span class="font-medieval font-extrabold text-lg sm:text-xl tracking-wider text-[#2447a6] dark:text-[#7b96eb]">RAPTURE</span>
+                    <span class="text-slate-400 dark:text-slate-600 font-light">|</span>
+                    <span class="font-medieval font-bold text-base sm:text-lg text-slate-800 dark:text-slate-100">Raid Timer</span>
+                </div>
+                <span class="text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-medium">Travian Alliance Wave Tool</span>
+            </div>
+        </div>
+
+        <!-- Right Controls: Sound Mute Quick Indicator + Dark Mode Toggle -->
+        <div class="flex items-center gap-2 sm:gap-3">
+            <button id="darkModeToggle" type="button" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/90 dark:bg-slate-800/90 border border-slate-300/80 dark:border-slate-700 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer">
+                <svg id="moonIcon" class="w-4 h-4 text-slate-600 dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                </svg>
+                <svg id="sunIcon" class="w-4 h-4 text-amber-400 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
+                </svg>
+                <span id="darkModeLabel">Dark Mode</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-6 w-full max-w-2xl mx-auto">
+        
+        <!-- Primary Timer Title & Big Digital Display (matching screenshot structure) -->
+        <div class="text-center mb-5">
+            <div class="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#2447a6]/10 dark:bg-[#7b96eb]/15 text-[#2447a6] dark:text-[#7b96eb] text-xs font-semibold tracking-wide mb-1">
+                <span>VAGA PRINCIPAL</span>
+                <span id="waveCounterBadge" class="px-1.5 py-0.2 bg-[#2447a6] text-white rounded-full text-[10px]">Vaga #1</span>
+            </div>
+            <h1 class="font-medieval text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-wide">Timer</h1>
+            <div id="mainDisplay" class="text-6xl sm:text-7xl font-bold tracking-tight text-slate-900 dark:text-white mt-1 tabular-nums transition-colors">
+                03:00
+            </div>
+        </div>
+
+        <!-- Main Timer Control Card (Faithful to Travian Raid Tracker UI + RAPTURE styling) -->
+        <div id="mainTimerCard" class="w-full max-w-md bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border border-slate-300/90 dark:border-slate-700/90 rounded-xl shadow-lg p-5 sm:p-6 transition-all">
+            
+            <!-- Set (mm:ss) Label & Quick Adjust Controls -->
+            <div class="mb-4">
+                <label for="timeInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+                    Set (mm:ss)
+                </label>
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <button type="button" onclick="adjustMainTime(-30)" class="px-2.5 sm:px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 transition active:scale-95 cursor-pointer">
+                        -30
+                    </button>
+                    <button type="button" onclick="adjustMainTime(-15)" class="px-2.5 sm:px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 transition active:scale-95 cursor-pointer">
+                        -15
+                    </button>
+                    <input id="timeInput" type="text" value="03:00" maxlength="5" aria-label="Tempo da vaga em minutos e segundos"
+                        class="flex-1 min-w-0 text-center py-2 px-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm sm:text-base font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2447a6] dark:focus:ring-[#7b96eb] tabular-nums" />
+                    <button type="button" onclick="adjustMainTime(15)" class="px-2.5 sm:px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 transition active:scale-95 cursor-pointer">
+                        +15
+                    </button>
+                    <button type="button" onclick="adjustMainTime(30)" class="px-2.5 sm:px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 transition active:scale-95 cursor-pointer">
+                        +30
+                    </button>
+                </div>
+
+                <!-- Quick Wave Presets -->
+                <div class="flex flex-wrap items-center justify-center gap-1.5 mt-3">
+                    <span class="text-[11px] text-slate-400 dark:text-slate-500 mr-1">Rápido:</span>
+                    <button type="button" onclick="setPresetTime(90)" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-[#2447a6]/15 dark:hover:bg-[#7b96eb]/20 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer">01:30</button>
+                    <button type="button" onclick="setPresetTime(120)" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-[#2447a6]/15 dark:hover:bg-[#7b96eb]/20 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer">02:00</button>
+                    <button type="button" onclick="setPresetTime(180)" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-[#2447a6]/15 dark:bg-[#7b96eb]/20 text-[#2447a6] dark:text-[#7b96eb] border border-[#2447a6]/30 dark:border-[#7b96eb]/30 transition cursor-pointer">03:00</button>
+                    <button type="button" onclick="setPresetTime(300)" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-[#2447a6]/15 dark:hover:bg-[#7b96eb]/20 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer">05:00</button>
+                    <button type="button" onclick="setPresetTime(600)" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 hover:bg-[#2447a6]/15 dark:hover:bg-[#7b96eb]/20 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer">10:00</button>
+                </div>
+            </div>
+
+            <!-- Repeat Checkbox -->
+            <div class="flex items-center justify-center my-3.5">
+                <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                    <input id="repeatCheckbox" type="checkbox" checked class="w-4 h-4 rounded border-slate-300 text-[#2447a6] focus:ring-[#2447a6] accent-[#2447a6] cursor-pointer">
+                    <span class="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200">Repeat (Repetir vaga automaticamente)</span>
+                </label>
+            </div>
+
+            <!-- Sound Selector -->
+            <div class="mb-3">
+                <label for="soundSelect" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+                    Sound
+                </label>
+                <div class="relative">
+                    <select id="soundSelect" class="w-full appearance-none rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 py-2 pl-3 pr-9 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#2447a6] dark:focus:ring-[#7b96eb] cursor-pointer">
+                        <option value="beep">Beep (Clássico)</option>
+                        <option value="doubleChime">Double Chime (Duplo Toque)</option>
+                        <option value="warHorn">War Horn (Corneta RAPTURE)</option>
+                        <option value="bell">Bell (Sino de Aldeia)</option>
+                        <option value="digitalPing">Digital Ping</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full-width Test Sound Button -->
+            <button id="testSoundBtn" type="button" class="w-full py-2 px-4 mb-4 rounded-lg bg-[#2447a6] hover:bg-[#162d6e] dark:bg-[#2447a6] dark:hover:bg-[#3158c4] text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.99] cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                </svg>
+                <span>Test</span>
+            </button>
+
+            <!-- Volume Slider -->
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Volume</span>
+                <input id="volumeSlider" type="range" min="0" max="100" value="100" class="flex-1" aria-label="Volume do alerta">
+                <span id="volumeValue" class="text-xs font-semibold text-slate-600 dark:text-slate-300 w-9 text-right tabular-nums">100%</span>
+            </div>
+        </div>
+
+        <!-- Primary Start / Reset Buttons (Below Card just like the screenshot) -->
+        <div class="flex items-center justify-center gap-3 mt-5">
+            <button id="startPauseBtn" type="button" class="min-w-[105px] px-6 py-2.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-800 dark:text-white font-semibold text-sm shadow-sm transition active:scale-95 cursor-pointer">
+                Start
+            </button>
+            <button id="resetBtn" type="button" class="min-w-[105px] px-6 py-2.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-800 dark:text-white font-semibold text-sm shadow-sm transition active:scale-95 cursor-pointer">
+                Reset
+            </button>
+        </div>
+
+        <!-- Multi-Wave Extra Timers Section (For simultaneous farm lists) -->
+        <div class="w-full max-w-md mt-7">
+            <div class="flex items-center justify-between mb-2.5">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#2447a6] dark:text-[#7b96eb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Vagas Extra (Farm Lists)
+                </h2>
+                <button id="addWaveBtn" type="button" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#2447a6]/10 hover:bg-[#2447a6]/20 dark:bg-[#7b96eb]/15 dark:hover:bg-[#7b96eb]/25 text-[#2447a6] dark:text-[#7b96eb] text-xs font-semibold transition cursor-pointer">
+                    <span>+ Adicionar Vaga</span>
+                </button>
+            </div>
+            <div id="extraWavesContainer" class="space-y-2.5">
+                <!-- Secondary wave timers render here -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Toast Notification Banner (Non-intrusive visual alert when wave completes) -->
+    <div id="waveToast" class="fixed bottom-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-3 transition-all duration-300">
+        <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#2447a6] text-white shadow-xl border border-[#7b96eb]/40 text-xs sm:text-sm font-semibold">
+            <span class="w-2 h-2 rounded-full bg-amber-300 animate-ping"></span>
+            <span id="waveToastText">Hora de enviar a vaga de raids!</span>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="relative z-10 w-full text-center py-4 px-4 text-xs text-slate-500 dark:text-slate-400">
+        <div class="flex items-center justify-center gap-2 font-medium">
+            <span class="font-medieval font-bold text-[#2447a6] dark:text-[#7b96eb]">RAPTURE</span>
+            <span>Alliance</span>
+            <span>•</span>
+            <span>Travian Raid Wave Timer</span>
+        </div>
+        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+            Mantém este separador aberto para ouvir o alerta sonoro entre vagas.
+        </p>
+    </footer>
+
+    <script>
+        // ==========================================
+        // 1. WEB AUDIO API SYNTHESIZER (No external files needed)
+        // ==========================================
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playAlertSound(type = null, volumePercent = null) {
+            try {
+                const ctx = getAudioContext();
+                const soundType = type || document.getElementById('soundSelect').value;
+                const volRaw = volumePercent !== null ? volumePercent : parseInt(document.getElementById('volumeSlider').value, 10);
+                const masterVol = Math.max(0, Math.min(1, volRaw / 100));
+
+                if (masterVol <= 0.001) return;
+
+                const now = ctx.currentTime;
+
+                if (soundType === 'beep') {
+                    // Classic sharp Travian-style double beep
+                    [0, 0.16].forEach(offset => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(880, now + offset);
+                        gain.gain.setValueAtTime(0.001, now + offset);
+                        gain.gain.exponentialRampToValueAtTime(masterVol * 0.45, now + offset + 0.015);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.13);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + offset);
+                        osc.stop(now + offset + 0.14);
+                    });
+                } else if (soundType === 'doubleChime') {
+                    // Pleasant ascending two-note chime
+                    const notes = [587.33, 880]; // D5 -> A5
+                    notes.forEach((freq, idx) => {
+                        const start = now + idx * 0.18;
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, start);
+                        gain.gain.setValueAtTime(0.001, start);
+                        gain.gain.exponentialRampToValueAtTime(masterVol * 0.55, start + 0.02);
+                        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.45);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(start);
+                        osc.stop(start + 0.46);
+                    });
+                } else if (soundType === 'warHorn') {
+                    // Deep RAPTURE War Horn brass swell
+                    const osc1 = ctx.createOscillator();
+                    const osc2 = ctx.createOscillator();
+                    const filter = ctx.createBiquadFilter();
+                    const gain = ctx.createGain();
+
+                    osc1.type = 'sawtooth';
+                    osc2.type = 'sawtooth';
+                    osc1.frequency.setValueAtTime(146.83, now); // D3
+                    osc1.frequency.linearRampToValueAtTime(155.56, now + 0.25);
+                    osc1.frequency.linearRampToValueAtTime(146.83, now + 0.85);
+
+                    osc2.frequency.setValueAtTime(220.00, now); // A3 fifth
+                    osc2.frequency.linearRampToValueAtTime(233.08, now + 0.25);
+                    osc2.frequency.linearRampToValueAtTime(220.00, now + 0.85);
+
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(650, now);
+                    filter.frequency.linearRampToValueAtTime(1100, now + 0.35);
+
+                    gain.gain.setValueAtTime(0.001, now);
+                    gain.gain.linearRampToValueAtTime(masterVol * 0.4, now + 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+
+                    osc1.connect(filter);
+                    osc2.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 0.92);
+                    osc2.stop(now + 0.92);
+                } else if (soundType === 'bell') {
+                    // Metallic village bell harmonic
+                    const ratios = [1, 2, 2.4, 3];
+                    const baseFreq = 660;
+                    ratios.forEach((ratio, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(baseFreq * ratio, now);
+                        const amp = (masterVol * 0.4) / (i + 1);
+                        gain.gain.setValueAtTime(0.001, now);
+                        gain.gain.exponentialRampToValueAtTime(amp, now + 0.01);
+                        gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.85 / (1 + i * 0.3));
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now);
+                        osc.stop(now + 0.9);
+                    });
+                } else if (soundType === 'digitalPing') {
+                    // Crisp high-tech sonar ping
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1318.5, now); // E6
+                    osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.28);
+                    gain.gain.setValueAtTime(0.001, now);
+                    gain.gain.exponentialRampToValueAtTime(masterVol * 0.5, now + 0.01);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.34);
+                }
+            } catch (err) {
+                console.warn('Audio playback blocked until user interaction:', err);
+            }
+        }
+
+        // ==========================================
+        // 2. TIME FORMATTING & PARSING HELPERS
+        // ==========================================
+        function formatSeconds(totalSec) {
+            const clamped = Math.max(0, Math.floor(totalSec));
+            const mins = Math.floor(clamped / 60);
+            const secs = clamped % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function parseTimeString(str) {
+            const cleaned = str.trim();
+            if (/^\d{1,3}:\d{1,2}$/.test(cleaned)) {
+                const [m, s] = cleaned.split(':').map(Number);
+                return Math.min(5999, m * 60 + Math.min(59, s));
+            }
+            if (/^\d{1,4}$/.test(cleaned)) {
+                return Math.min(5999, parseInt(cleaned, 10));
+            }
+            return null;
+        }
+
+        // ==========================================
+        // 3. MAIN TIMER LOGIC (Drift-Free Timestamp Based)
+        // ==========================================
+        const state = {
+            configuredSeconds: 180, // Default 03:00
+            remainingSeconds: 180,
+            isRunning: false,
+            endTimestamp: null,
+            waveCount: 1,
+            intervalId: null
+        };
+
+        const mainDisplayEl = document.getElementById('mainDisplay');
+        const timeInputEl = document.getElementById('timeInput');
+        const startPauseBtn = document.getElementById('startPauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const repeatCheckbox = document.getElementById('repeatCheckbox');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeValue = document.getElementById('volumeValue');
+        const waveCounterBadge = document.getElementById('waveCounterBadge');
+        const mainTimerCard = document.getElementById('mainTimerCard');
+
+        function updateMainUI() {
+            const formatted = formatSeconds(state.remainingSeconds);
+            mainDisplayEl.textContent = formatted;
+            document.title = `${formatted} • RAPTURE Raid Timer`;
+            waveCounterBadge.textContent = `Vaga #${state.waveCount}`;
+
+            if (state.isRunning) {
+                startPauseBtn.textContent = 'Pause';
+                startPauseBtn.classList.add('border-[#2447a6]', 'dark:border-[#7b96eb]', 'text-[#2447a6]', 'dark:text-[#7b96eb]');
+            } else {
+                startPauseBtn.textContent = 'Start';
+                startPauseBtn.classList.remove('border-[#2447a6]', 'dark:border-[#7b96eb]', 'text-[#2447a6]', 'dark:text-[#7b96eb]');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('waveToast');
+            const toastText = document.getElementById('waveToastText');
+            toastText.textContent = message;
+            toast.classList.remove('opacity-0', 'translate-y-3');
+            clearTimeout(toast._hideTimeout);
+            toast._hideTimeout = setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-3');
+            }, 3500);
+        }
+
+        function triggerVisualAlert() {
+            mainTimerCard.classList.remove('wave-triggered');
+            void mainTimerCard.offsetWidth; // force reflow
+            mainTimerCard.classList.add('wave-triggered');
+        }
+
+        function tickMainTimer() {
+            if (!state.isRunning) return;
+
+            const now = Date.now();
+            const diffMs = state.endTimestamp - now;
+            const remaining = Math.ceil(diffMs / 1000);
+
+            if (remaining <= 0) {
+                playAlertSound();
+                triggerVisualAlert();
+                showToast(`⚔️ RAPTURE: Enviar Vaga #${state.waveCount} agora!`);
+
+                if (repeatCheckbox.checked && state.configuredSeconds > 0) {
+                    state.waveCount += 1;
+                    state.remainingSeconds = state.configuredSeconds;
+                    state.endTimestamp = Date.now() + state.configuredSeconds * 1000;
+                } else {
+                    state.remainingSeconds = 0;
+                    state.isRunning = false;
+                    clearInterval(state.intervalId);
+                }
+            } else {
+                state.remainingSeconds = remaining;
+            }
+            updateMainUI();
+        }
+
+        function startMainTimer() {
+            getAudioContext(); // Unlock audio on user gesture
+            if (state.remainingSeconds <= 0) {
+                state.remainingSeconds = state.configuredSeconds;
+            }
+            if (state.remainingSeconds <= 0) return;
+
+            state.isRunning = true;
+            state.endTimestamp = Date.now() + state.remainingSeconds * 1000;
+            clearInterval(state.intervalId);
+            state.intervalId = setInterval(tickMainTimer, 200);
+            updateMainUI();
+        }
+
+        function pauseMainTimer() {
+            state.isRunning = false;
+            clearInterval(state.intervalId);
+            updateMainUI();
+        }
+
+        function resetMainTimer() {
+            state.isRunning = false;
+            clearInterval(state.intervalId);
+            state.waveCount = 1;
+            state.remainingSeconds = state.configuredSeconds;
+            updateMainUI();
+        }
+
+        function setConfiguredSeconds(newSeconds) {
+            const validSeconds = Math.max(5, Math.min(5999, newSeconds));
+            state.configuredSeconds = validSeconds;
+            timeInputEl.value = formatSeconds(validSeconds);
+
+            if (!state.isRunning) {
+                state.remainingSeconds = validSeconds;
+            } else {
+                state.remainingSeconds = validSeconds;
+                state.endTimestamp = Date.now() + validSeconds * 1000;
+            }
+            updateMainUI();
+        }
+
+        window.adjustMainTime = function(deltaSeconds) {
+            setConfiguredSeconds(state.configuredSeconds + deltaSeconds);
+        };
+
+        window.setPresetTime = function(seconds) {
+            setConfiguredSeconds(seconds);
+        };
+
+        // Input manual time edit
+        timeInputEl.addEventListener('change', () => {
+            const parsed = parseTimeString(timeInputEl.value);
+            if (parsed !== null && parsed > 0) {
+                setConfiguredSeconds(parsed);
+            } else {
+                timeInputEl.value = formatSeconds(state.configuredSeconds);
+            }
+        });
+
+        timeInputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                timeInputEl.blur();
+            }
+        });
+
+        // Start / Pause & Reset events
+        startPauseBtn.addEventListener('click', () => {
+            if (state.isRunning) {
+                pauseMainTimer();
+            } else {
+                startMainTimer();
+            }
+        });
+
+        resetBtn.addEventListener('click', resetMainTimer);
+
+        // Volume & Sound Test
+        volumeSlider.addEventListener('input', () => {
+            volumeValue.textContent = `${volumeSlider.value}%`;
+        });
+
+        document.getElementById('testSoundBtn').addEventListener('click', () => {
+            playAlertSound();
+        });
+
+        // ==========================================
+        // 4. SECONDARY / MULTI-WAVE TIMERS
+        // ==========================================
+        let extraWaves = [];
+        let extraWaveIdCounter = 1;
+        const extraWavesContainer = document.getElementById('extraWavesContainer');
+
+        function renderExtraWaves() {
+            extraWavesContainer.innerHTML = '';
+            extraWaves.forEach(wave => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-300/80 dark:border-slate-700/80 shadow-sm';
+                
+                row.innerHTML = `
+                    <div class="flex items-center gap-2 min-w-0 flex-1">
+                        <input type="text" value="${wave.name}" onchange="renameExtraWave(${wave.id}, this.value)"
+                            class="w-full max-w-[130px] bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-200 border-b border-transparent focus:border-[#2447a6] focus:outline-none truncate" />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="extra-display-${wave.id}" class="font-bold text-base tabular-nums text-slate-900 dark:text-white">
+                            ${formatSeconds(wave.remaining)}
+                        </span>
+                        <button type="button" onclick="toggleExtraWave(${wave.id})"
+                            class="px-2.5 py-1 rounded-md text-xs font-semibold ${wave.running ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300' : 'bg-[#2447a6] text-white'} transition cursor-pointer">
+                            ${wave.running ? 'Pausar' : 'Iniciar'}
+                        </button>
+                        <button type="button" onclick="resetExtraWave(${wave.id})" title="Reiniciar"
+                            class="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </button>
+                        <button type="button" onclick="removeExtraWave(${wave.id})" title="Remover vaga"
+                            class="p-1 rounded-md text-slate-400 hover:text-red-500 transition cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                extraWavesContainer.appendChild(row);
+            });
+        }
+
+        document.getElementById('addWaveBtn').addEventListener('click', () => {
+            getAudioContext();
+            const num = extraWaves.length + 2;
+            extraWaves.push({
+                id: extraWaveIdCounter++,
+                name: `Vaga #${num} (Oásis)`,
+                duration: 300, // 05:00 default for secondary wave
+                remaining: 300,
+                running: false,
+                endTimestamp: null
+            });
+            renderExtraWaves();
+        });
+
+        window.renameExtraWave = function(id, newName) {
+            const w = extraWaves.find(item => item.id === id);
+            if (w && newName.trim()) w.name = newName.trim();
+        };
+
+        window.toggleExtraWave = function(id) {
+            getAudioContext();
+            const w = extraWaves.find(item => item.id === id);
+            if (!w) return;
+            if (w.running) {
+                w.running = false;
+            } else {
+                if (w.remaining <= 0) w.remaining = w.duration;
+                w.running = true;
+                w.endTimestamp = Date.now() + w.remaining * 1000;
+            }
+            renderExtraWaves();
+        };
+
+        window.resetExtraWave = function(id) {
+            const w = extraWaves.find(item => item.id === id);
+            if (!w) return;
+            w.running = false;
+            w.remaining = w.duration;
+            renderExtraWaves();
+        };
+
+        window.removeExtraWave = function(id) {
+            extraWaves = extraWaves.filter(item => item.id !== id);
+            renderExtraWaves();
+        };
+
+        // Tick loop for extra waves
+        setInterval(() => {
+            const now = Date.now();
+            extraWaves.forEach(w => {
+                if (!w.running) return;
+                const rem = Math.ceil((w.endTimestamp - now) / 1000);
+                if (rem <= 0) {
+                    playAlertSound();
+                    showToast(`⚔️ RAPTURE: Enviar ${w.name}!`);
+                    if (repeatCheckbox.checked) {
+                        w.remaining = w.duration;
+                        w.endTimestamp = Date.now() + w.duration * 1000;
+                    } else {
+                        w.remaining = 0;
+                        w.running = false;
+                        renderExtraWaves();
+                    }
+                } else {
+                    w.remaining = rem;
+                }
+                const el = document.getElementById(`extra-display-${w.id}`);
+                if (el) el.textContent = formatSeconds(w.remaining);
+            });
+        }, 250);
+
+        // ==========================================
+        // 5. DARK MODE TOGGLE
+        // ==========================================
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const darkModeLabel = document.getElementById('darkModeLabel');
+
+        function setDarkMode(isDark) {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                darkModeLabel.textContent = 'Light Mode';
+                localStorage.setItem('rapture_timer_theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                darkModeLabel.textContent = 'Dark Mode';
+                localStorage.setItem('rapture_timer_theme', 'light');
+            }
+        }
+
+        // Load saved preference
+        if (localStorage.getItem('rapture_timer_theme') === 'dark') {
+            setDarkMode(true);
+        }
+
+        darkModeToggle.addEventListener('click', () => {
+            const isCurrentlyDark = document.documentElement.classList.contains('dark');
+            setDarkMode(!isCurrentlyDark);
+        });
+
+        // Initial render
+        updateMainUI();
+    </script>
+</body>
+</html>
